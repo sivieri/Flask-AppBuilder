@@ -7,6 +7,8 @@ from . import filters
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
+from sqlalchemy.engine.default import DefaultDialect
+from sqlalchemy.sql.sqltypes import String, DateTime, NullType
 
 from ..base import BaseInterface
 from ..group import GroupByDateYear, GroupByDateMonth, GroupByCol
@@ -17,7 +19,6 @@ from ...const import LOGMSG_ERR_DBI_ADD_GENERIC, LOGMSG_ERR_DBI_EDIT_GENERIC, LO
                      LOGMSG_WAR_DBI_ADD_INTEGRITY, LOGMSG_WAR_DBI_EDIT_INTEGRITY, LOGMSG_WAR_DBI_DEL_INTEGRITY
 
 log = logging.getLogger(__name__)
-
 
 def _include_filters(obj):
     for key in filters.__all__:
@@ -38,7 +39,6 @@ class SQLAInterface(BaseInterface):
         _include_filters(self)
         self.list_columns = dict()
         self.list_properties = dict()
-
         self.session = session
         # Collect all SQLA columns and properties
         for col_name in obj.__mapper__.columns.keys():
@@ -195,6 +195,12 @@ class SQLAInterface(BaseInterface):
     def is_datetime(self, col_name):
         try:
             return isinstance(self.list_columns[col_name].type, sa.types.DateTime)
+        except:
+            return False
+
+    def is_enum(self, col_name):
+        try:
+            return isinstance(self.list_columns[col_name].type, sa.types.Enum)
         except:
             return False
 

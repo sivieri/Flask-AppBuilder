@@ -3,7 +3,7 @@ from flask_wtf import Form
 from wtforms import (BooleanField, StringField,
                      TextAreaField, IntegerField, FloatField,
                       DateField, DateTimeField, DecimalField)
-from .fields import QuerySelectMultipleField, QuerySelectField
+from .fields import QuerySelectMultipleField, QuerySelectField, QuerySelectEnumField
 
 from wtforms import validators
 from .fieldwidgets import (BS3TextAreaFieldWidget,
@@ -26,6 +26,11 @@ except:
 
 log = logging.getLogger(__name__)
 
+def enum_values(obj, col_name):
+    col = obj.datamodel.list_properties[col_name].columns[0]
+    values = col.type.enums
+    choices = zip(values, values)
+    return choices
 
 class FieldConverter(object):
     """
@@ -148,6 +153,28 @@ class GeneralModelConverter(object):
                                      widget=Select2ManyWidget())
         return form_props
 
+    def _convert_enum(self, col_name, label, description,
+                             lst_validators, filter_rel_fields,
+                             form_props):
+        query_func = lambda: enum_values(self, col_name)
+        get_pk_func = None
+        extra_classes = None
+        allow_blank = True
+        if not self.datamodel.is_nullable(col_name):
+            lst_validators.append(validators.DataRequired())
+            allow_blank = False
+        else:
+            lst_validators.append(validators.Optional())
+        form_props[col_name] = \
+            QuerySelectEnumField(label,
+                             description=description,
+                             query_func=query_func,
+                             get_pk_func=get_pk_func,
+                             allow_blank=allow_blank,
+                             validators=lst_validators,
+                             widget=Select2Widget(extra_classes=extra_classes))
+        return form_props
+
     def _convert_simple(self, col_name, label, description, lst_validators, form_props):
         # Add Validator size
         max = self.datamodel.get_max_length(col_name)
@@ -188,6 +215,8 @@ class GeneralModelConverter(object):
                                                   form_props)
             else:
                 log.warning("Relation {0} not supported".format(col_name))
+        elif self.datamodel.is_enum(col_name):
+            return self._convert_enum(col_name, label, description, lst_validators, filter_rel_fields, form_props)
         else:
             return self._convert_simple(col_name, label, description, lst_validators, form_props)
 

@@ -153,6 +153,9 @@ class BaseInterface(object):
     def is_datetime(self, col_name):
         return False
 
+    def is_enum(self, col_name):
+        return False
+
     def is_relation(self, prop):
         return False
 

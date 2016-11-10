@@ -132,6 +132,74 @@ class QuerySelectField(SelectFieldBase):
         elif self._formdata or not self.allow_blank:
             raise ValidationError(self.gettext('Not a valid choice'))
 
+class QuerySelectEnumField(SelectFieldBase):
+    """
+        Based on WTForms QuerySelectField
+    """
+    widget = widgets.Select()
+
+    def __init__(self, label=None, validators=None, query_func=None,
+                 get_pk_func=None, get_label=None, allow_blank=False,
+                 blank_text='', **kwargs):
+        super(QuerySelectEnumField, self).__init__(label, validators, **kwargs)
+        self.query_func = query_func
+        self.get_pk_func = get_pk_func
+
+        if get_label is None:
+            self.get_label = lambda x: x
+        elif isinstance(get_label, string_types):
+            self.get_label = operator.attrgetter(get_label)
+        else:
+            self.get_label = get_label
+
+        self.allow_blank = allow_blank
+        self.blank_text = blank_text
+        self._object_list = None
+
+    def _get_data(self):
+        if self._formdata is not None:
+            for pk, obj in self._get_object_list():
+                if pk == self._formdata:
+                    self._set_data(obj)
+                    break
+        return self._data
+
+    def _set_data(self, data):
+        self._data = data
+        self._formdata = None
+
+    data = property(_get_data, _set_data)
+
+    def _get_object_list(self):
+        if self._object_list is None:
+            self._object_list = self.query_func()
+        return self._object_list
+
+    def iter_choices(self):
+        if self.allow_blank:
+            yield ('__None', self.blank_text, self.data is None)
+
+        for pk, obj in self._get_object_list():
+            yield (pk, self.get_label(obj), obj == self.data)
+
+    def process_formdata(self, valuelist):
+        if valuelist:
+            if self.allow_blank and valuelist[0] == '__None':
+                self.data = None
+            else:
+                self._data = None
+                self._formdata = valuelist[0]
+
+    def pre_validate(self, form):
+        data = self.data
+        if data is not None:
+            for pk, obj in self._get_object_list():
+                if data == obj:
+                    break
+            else:
+                raise ValidationError(self.gettext('Not a valid choice'))
+        elif self._formdata or not self.allow_blank:
+            raise ValidationError(self.gettext('Not a valid choice'))
 
 class QuerySelectMultipleField(QuerySelectField):
     """
