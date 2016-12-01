@@ -149,6 +149,9 @@ class BaseInterface(object):
 
     def is_date(self, col_name):
         return False
+    
+    def is_time(self, col_name):
+        return False
 
     def is_datetime(self, col_name):
         return False

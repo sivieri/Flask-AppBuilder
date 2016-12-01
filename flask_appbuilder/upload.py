@@ -103,7 +103,7 @@ class BS3ImageUploadFieldWidget(object):
 
 
 # Fields
-class FileUploadField(fields.TextField):
+class FileUploadField(fields.StringField):
     """
         Customizable file-upload field.
 

@@ -125,6 +125,9 @@ var AdminFilters = function(element, labels, form, filters, active_filters) {
         if ($field.hasClass( "appbuilder_date" )) {
         	$field.datetimepicker({pickTime: false });
         }
+        if ($field.hasClass( "appbuilder_time" )) {
+        	$field.datetimepicker({pickDate: false });
+        }
         lastCount += 1;
     };
 

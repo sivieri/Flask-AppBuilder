@@ -2,13 +2,14 @@ import logging
 from flask_wtf import Form
 from wtforms import (BooleanField, StringField,
                      TextAreaField, IntegerField, FloatField,
-                      DateField, DateTimeField, DecimalField)
+                      DateField, TimeField, DateTimeField, DecimalField)
 from .fields import QuerySelectMultipleField, QuerySelectField, QuerySelectEnumField
 
 from wtforms import validators
 from .fieldwidgets import (BS3TextAreaFieldWidget,
                            BS3TextFieldWidget,
                            DatePickerWidget,
+                           TimePickerWidget,
                            DateTimePickerWidget,
                            Select2Widget,
                            Select2ManyWidget)
@@ -50,6 +51,7 @@ class FieldConverter(object):
                         ('is_float', FloatField, BS3TextFieldWidget),
                         ('is_boolean', BooleanField, None),
                         ('is_date', DateField, DatePickerWidget),
+                        ('is_time', TimeField, TimePickerWidget),
                         ('is_datetime', DateTimeField, DateTimePickerWidget),
     )
 
